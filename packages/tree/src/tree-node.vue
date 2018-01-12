@@ -147,7 +147,8 @@
 
       handleSelectChange(checked, indeterminate) {
         if (this.oldChecked !== checked && this.oldIndeterminate !== indeterminate) {
-          this.tree.$emit('check-change', this.node.data, checked, indeterminate);
+          // 2018-1-12 张超 check-change 事件添加一个node节点参数
+          this.tree.$emit('check-change', this.node.data, checked, indeterminate, this.node);
         }
         this.oldChecked = checked;
         this.indeterminate = indeterminate;
