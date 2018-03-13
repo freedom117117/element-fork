@@ -2,16 +2,16 @@
   <div
     class="el-select"
     :class="[selectSize ? 'el-select--' + selectSize : '']"
+    @click.stop="toggleMenu"
     v-clickoutside="handleClose">
     <div
       class="el-select__tags"
       v-if="multiple"
-      @click.stop="toggleMenu"
       ref="tags"
       :style="{ 'max-width': inputWidth - 32 + 'px' }">
       <span v-if="collapseTags && selected.length">
         <el-tag
-          :closable="!disabled"
+          :closable="!selectDisabled"
           :size="collapseTagSize"
           :hit="selected[0].hitState"
           type="info"
@@ -32,8 +32,8 @@
         <el-tag
           v-for="item in selected"
           :key="getValueKey(item)"
-          :closable="!disabled"
-          size="small"
+          :closable="!selectDisabled"
+          :size="collapseTagSize"
           :hit="item.hitState"
           type="info"
           @close="deleteTag($event, item)"
@@ -46,7 +46,8 @@
         type="text"
         class="el-select__input"
         :class="[selectSize ? `is-${ selectSize }` : '']"
-        :disabled="disabled"
+        :disabled="selectDisabled"
+        :autocomplete="autoComplete"
         @focus="handleFocus"
         @click.stop
         @keyup="managePlaceholder"
@@ -70,14 +71,14 @@
       :placeholder="currentPlaceholder"
       :name="name"
       :id="id"
+      :auto-complete="autoComplete"
       :size="selectSize"
-      :disabled="disabled"
-      :readonly="!filterable || multiple"
+      :disabled="selectDisabled"
+      :readonly="!filterable || multiple || !visible"
       :validate-event="false"
       :class="{ 'is-focus': visible }"
       @focus="handleFocus"
       @blur="handleBlur"
-      @mousedown.native="handleMouseDown"
       @keyup.native="debouncedOnInputChange"
       @keydown.native.down.stop.prevent="navigateOptions('next')"
       @keydown.native.up.stop.prevent="navigateOptions('prev')"
@@ -98,6 +99,7 @@
       @after-leave="doDestroy">
       <el-select-menu
         ref="popper"
+        :append-to-body="popperAppendToBody"
         v-show="visible && emptyText !== false">
         <el-scrollbar
           tag="ul"
@@ -113,7 +115,12 @@
           </el-option>
           <slot></slot>
         </el-scrollbar>
-        <p class="el-select-dropdown__empty" v-if="emptyText && (allowCreate && options.length === 0 || !allowCreate)">{{ emptyText }}</p>
+        <p
+          class="el-select-dropdown__empty"
+          v-if="emptyText &&
+            (!allowCreate || loading || (allowCreate && options.length === 0 ))">
+          {{ emptyText }}
+        </p>
       </el-select-menu>
     </transition>
   </div>
@@ -152,6 +159,10 @@
     componentName: 'ElSelect',
 
     inject: {
+      elForm: {
+        default: ''
+      },
+
       elFormItem: {
         default: ''
       }
@@ -169,7 +180,7 @@
       },
       iconClass() {
         let criteria = this.clearable &&
-          !this.disabled &&
+          !this.selectDisabled &&
           this.inputHovering &&
           !this.multiple &&
           this.value !== undefined &&
@@ -206,6 +217,10 @@
         return this.size || this._elFormItemSize || (this.$ELEMENT || {}).size;
       },
 
+      selectDisabled() {
+        return this.disabled || (this.elForm || {}).disabled;
+      },
+
       collapseTagSize() {
         return ['small', 'mini'].indexOf(this.selectSize) > -1
           ? 'mini'
@@ -228,6 +243,10 @@
       id: String,
       value: {
         required: true
+      },
+      autoComplete: {
+        type: String,
+        default: 'off'
       },
       size: String,
       disabled: Boolean,
@@ -259,7 +278,11 @@
         type: String,
         default: 'value'
       },
-      collapseTags: Boolean
+      collapseTags: Boolean,
+      popperAppendToBody: {
+        type: Boolean,
+        default: true
+      }
     },
 
     data() {
@@ -275,17 +298,18 @@
         optionsCount: 0,
         filteredOptionsCount: 0,
         visible: false,
+        softFocus: false,
         selectedLabel: '',
         hoverIndex: -1,
         query: '',
-        previousQuery: '',
+        previousQuery: null,
         inputHovering: false,
         currentPlaceholder: ''
       };
     },
 
     watch: {
-      disabled() {
+      selectDisabled() {
         this.$nextTick(() => {
           this.resetInputHeight();
         });
@@ -316,13 +340,13 @@
 
       visible(val) {
         if (!val) {
-          this.$refs.reference.$el.querySelector('input').blur();
           this.handleIconHide();
           this.broadcast('ElSelectDropdown', 'destroyPopper');
           if (this.$refs.input) {
             this.$refs.input.blur();
           }
           this.query = '';
+          this.previousQuery = null;
           this.selectedLabel = '';
           this.inputLength = 20;
           this.resetHoverIndex();
@@ -382,6 +406,10 @@
     methods: {
       handleQueryChange(val) {
         if (this.previousQuery === val) return;
+        if (this.previousQuery === null && typeof this.filterMethod === 'function') {
+          this.previousQuery = val;
+          return;
+        }
         this.previousQuery = val;
         this.$nextTick(() => {
           if (this.visible) this.broadcast('ElSelectDropdown', 'updatePopper');
@@ -496,8 +524,11 @@
       },
 
       handleFocus(event) {
-        this.visible = true;
-        this.$emit('focus', event);
+        if (!this.softFocus) {
+          this.$emit('focus', event);
+        } else {
+          this.softFocus = false;
+        }
       },
 
       handleBlur(event) {
@@ -507,16 +538,6 @@
       handleIconClick(event) {
         if (this.iconClass.indexOf('circle-close') > -1) {
           this.deleteSelected(event);
-        } else {
-          this.toggleMenu();
-        }
-      },
-
-      handleMouseDown(event) {
-        if (event.target.tagName !== 'INPUT') return;
-        if (this.visible) {
-          this.handleClose();
-          event.preventDefault();
         }
       },
 
@@ -570,9 +591,13 @@
           let inputChildNodes = this.$refs.reference.$el.childNodes;
           let input = [].filter.call(inputChildNodes, item => item.tagName === 'INPUT')[0];
           const tags = this.$refs.tags;
+          const sizeInMap = sizeMap[this.selectSize] || 40;
           input.style.height = this.selected.length === 0
-            ? (sizeMap[this.selectSize] || 40) + 'px'
-            : Math.max(tags ? (tags.clientHeight + 10) : 0, sizeMap[this.selectSize] || 40) + 'px';
+            ? sizeInMap + 'px'
+            : Math.max(
+              tags ? (tags.clientHeight + (tags.clientHeight > sizeInMap ? 6 : 0)) : 0,
+              sizeInMap
+            ) + 'px';
           if (this.visible && this.emptyText !== false) {
             this.broadcast('ElSelectDropdown', 'updatePopper');
           }
@@ -615,7 +640,15 @@
           this.emitChange(option.value);
           this.visible = false;
         }
-        this.$nextTick(() => this.scrollToOption(option));
+        this.$nextTick(() => {
+          this.scrollToOption(option);
+          this.setSoftFocus();
+        });
+      },
+
+      setSoftFocus() {
+        this.softFocus = true;
+        (this.$refs.input || this.$refs.reference).focus();
       },
 
       getValueIndex(arr = [], value) {
@@ -637,7 +670,7 @@
       },
 
       toggleMenu() {
-        if (!this.disabled) {
+        if (!this.selectDisabled) {
           this.visible = !this.visible;
           if (this.visible) {
             (this.$refs.input || this.$refs.reference).focus();
@@ -646,8 +679,12 @@
       },
 
       selectOption() {
-        if (this.options[this.hoverIndex]) {
-          this.handleOptionSelect(this.options[this.hoverIndex]);
+        if (!this.visible) {
+          this.toggleMenu();
+        } else {
+          if (this.options[this.hoverIndex]) {
+            this.handleOptionSelect(this.options[this.hoverIndex]);
+          }
         }
       },
 
@@ -661,7 +698,7 @@
 
       deleteTag(event, tag) {
         let index = this.selected.indexOf(tag);
-        if (index > -1 && !this.disabled) {
+        if (index > -1 && !this.selectDisabled) {
           const value = this.value.slice();
           value.splice(index, 1);
           this.$emit('input', value);

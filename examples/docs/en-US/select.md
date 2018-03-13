@@ -670,6 +670,7 @@ If the binding value of Select is an object, make sure to assign `value-key` as 
 | collapse-tags | whether to collapse tags to a text when multiple selecting | boolean | — | false |
 | multiple-limit | maximum number of options user can select when `multiple` is `true`. No limit when set to 0 | number | — | 0 |
 | name | the name attribute of select input | string | — | — |
+| auto-complete | the autocomplete attribute of select input | string | — | off |
 | placeholder | placeholder | string | — | Select |
 | filterable | whether Select is filterable | boolean | — | false |
 | allow-create | whether creating new items is allowed. To use this, `filterable` must be true | boolean | — | false |
@@ -683,6 +684,7 @@ If the binding value of Select is an object, make sure to assign `value-key` as 
 | popper-class | custom class name for Select's dropdown | string | — | — |
 | reserve-keyword | when `multiple` and `filter` is true, whether to reserve current keyword after selecting an option | boolean | — | false |
 | default-first-option | select first matching option on enter key. Use with `filterable` or `remote` | boolean | - | false |
+| popper-append-to-body| whether to append the popper menu to body. If the positioning of the popper is wrong, you can try to set this prop to false | boolean | - | true |
 
 ### Select Events
 | Event Name | Description | Parameters |

@@ -61,8 +61,13 @@
                 if (hasClass(el, 'el-menu--collapse')) {
                   removeClass(el, 'el-menu--collapse');
                   el.dataset.oldOverflow = el.style.overflow;
-                  el.dataset.scrollWidth = el.scrollWidth;
+                  el.dataset.scrollWidth = el.clientWidth;
                   addClass(el, 'el-menu--collapse');
+                } else {
+                  addClass(el, 'el-menu--collapse');
+                  el.dataset.oldOverflow = el.style.overflow;
+                  el.dataset.scrollWidth = el.clientWidth;
+                  removeClass(el, 'el-menu--collapse');
                 }
 
                 el.style.width = el.scrollWidth + 'px';
@@ -70,23 +75,8 @@
               },
 
               leave(el) {
-                if (!hasClass(el, 'el-menu--collapse')) {
-                  addClass(el, 'horizontal-collapse-transition');
-                  el.style.width = '64px';
-                } else {
-                  addClass(el, 'horizontal-collapse-transition');
-                  el.style.width = el.dataset.scrollWidth + 'px';
-                }
-              },
-
-              afterLeave(el) {
-                removeClass(el, 'horizontal-collapse-transition');
-                if (hasClass(el, 'el-menu--collapse')) {
-                  el.style.width = el.dataset.scrollWidth + 'px';
-                } else {
-                  el.style.width = '64px';
-                }
-                el.style.overflow = el.dataset.oldOverflow;
+                addClass(el, 'horizontal-collapse-transition');
+                el.style.width = el.dataset.scrollWidth + 'px';
               }
             }
           };
@@ -127,6 +117,9 @@
     computed: {
       hoverBackground() {
         return this.backgroundColor ? this.mixColor(this.backgroundColor, 0.2) : '';
+      },
+      isMenuPopup() {
+        return this.mode === 'horizontal' || (this.mode === 'vertical' && this.collapse);
       }
     },
     watch: {
@@ -140,6 +133,7 @@
 
       collapse(value) {
         if (value) this.openedMenus = [];
+        this.broadcast('ElSubmenu', 'toggle-collapse', value);
       }
     },
     methods: {
@@ -239,7 +233,9 @@
         }
       },
       handleItemClick(item) {
-        let { index, indexPath } = item;
+        const { index, indexPath } = item;
+        const oldActiveIndex = this.activeIndex;
+
         this.activeIndex = item.index;
         this.$emit('select', index, indexPath, item);
 
@@ -248,7 +244,10 @@
         }
 
         if (this.router) {
-          this.routeToItem(item);
+          this.routeToItem(item, (error) => {
+            this.activeIndex = oldActiveIndex;
+            if (error) console.error(error);
+          });
         }
       },
       // 初始化展开菜单
@@ -267,10 +266,10 @@
           submenu && this.openMenu(index, submenu.indexPath);
         });
       },
-      routeToItem(item) {
+      routeToItem(item, onError) {
         let route = item.route || item.index;
         try {
-          this.$router.push(route);
+          this.$router.push(route, () => {}, onError);
         } catch (e) {
           console.error(e);
         }
