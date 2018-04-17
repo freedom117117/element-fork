@@ -199,7 +199,6 @@
         if (typeof this.decimalScale === 'number' && this.getPrecision(newVal) > this.decimalScale) {
           newVal = this.toPrecision(newVal, this.decimalScale);
         }
-        console.log('input number error')
         if (oldVal === newVal) {
           this.$refs.input.setCurrentValue(this.currentValue);
           return;
