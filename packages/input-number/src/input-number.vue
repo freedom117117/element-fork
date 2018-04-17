@@ -84,6 +84,9 @@
         type: Number,
         default: -Infinity
       },
+      decimalScale: { // 小数点的位置
+        type: Number
+      },
       value: {},
       disabled: Boolean,
       size: String,
@@ -192,6 +195,11 @@
         const oldVal = this.currentValue;
         if (newVal >= this.max) newVal = this.max;
         if (newVal <= this.min) newVal = this.min;
+        // 增加小数点位数的控制
+        if (typeof this.decimalScale === 'number' && this.getPrecision(newVal) > this.decimalScale) {
+          newVal = this.toPrecision(newVal, this.decimalScale);
+        }
+        console.log('input number error')
         if (oldVal === newVal) {
           this.$refs.input.setCurrentValue(this.currentValue);
           return;
