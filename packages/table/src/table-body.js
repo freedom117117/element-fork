@@ -120,7 +120,17 @@ export default {
                 : ''
               ]
             ).concat(
-              <el-tooltip effect={ this.table.tooltipEffect } placement="top" ref="tooltip" content={ this.tooltipContent }></el-tooltip>
+              <el-tooltip effect={ this.table.tooltipEffect } placement="top" ref="tooltip">
+                <template slot="content">
+                  <div>
+                    {this._c('div', {
+                      domProps: {
+                        innerHTML: this.tooltipContent
+                      }
+                    })}
+                  </div>
+                </template>
+              </el-tooltip>
             )
           }
         </tbody>
@@ -339,8 +349,13 @@ export default {
 
       if (hasClass(cellChild, 'el-tooltip') && cellChild.scrollWidth > cellChild.offsetWidth && this.$refs.tooltip) {
         const tooltip = this.$refs.tooltip;
+        const column = getColumnByCell(table, cell);
         // TODO 会引起整个 Table 的重新渲染，需要优化
-        this.tooltipContent = cell.textContent || cell.innerText;
+        if (column && column.cellTooltip) {
+          this.tooltipContent = cell.querySelector('.cell').innerHTML;
+        } else {
+          this.tooltipContent = cell.textContent || cell.innerText;
+        }
         tooltip.referenceElm = cell;
         tooltip.$refs.popper && (tooltip.$refs.popper.style.display = 'none');
         tooltip.doDestroy();

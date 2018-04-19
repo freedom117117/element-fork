@@ -168,6 +168,7 @@ export default {
     headerAlign: String,
     showTooltipWhenOverflow: Boolean,
     showOverflowTooltip: Boolean,
+    cellTooltip: Boolean, // 新增，判定是否用cell中的html显示tooltip
     fixed: [Boolean, String],
     formatter: Function,
     selectable: Function,
@@ -255,6 +256,7 @@ export default {
       sortBy: this.sortBy,
       resizable: this.resizable,
       showOverflowTooltip: this.showOverflowTooltip || this.showTooltipWhenOverflow,
+      cellTooltip: this.cellTooltip,
       formatter: this.formatter,
       selectable: this.selectable,
       reserveSelection: this.reserveSelection,
