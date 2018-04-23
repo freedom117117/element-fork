@@ -205,7 +205,33 @@
         this.validateMessage = '';
         this.validateDisabled = false;
       },
-      resetField() {
+      // resetField() {
+      //   this.validateState = '';
+      //   this.validateMessage = '';
+
+      //   let model = this.form.model;
+      //   let value = this.fieldValue;
+      //   let path = this.prop;
+      //   if (path.indexOf(':') !== -1) {
+      //     path = path.replace(/:/, '.');
+      //   }
+
+      //   let prop = getPropByPath(model, path, true);
+
+      //   this.validateDisabled = true;
+      //   if (Array.isArray(value)) {
+      //     prop.o[prop.k] = [].concat(this.initialValue);
+      //   } else {
+      //     prop.o[prop.k] = this.initialValue;
+      //   }
+      //   /* Select 的值被代码改变时不会触发校验，
+      //      这里需要强行触发一次，刷新 validateDisabled 的值，
+      //      确保 Select 下一次值改变时能正确触发校验 */
+      //   this.broadcast('ElSelect', 'fieldReset');
+
+      //   this.broadcast('ElTimeSelect', 'fieldReset', this.initialValue);
+      // },
+      resetField(total) {
         this.validateState = '';
         this.validateMessage = '';
 
@@ -220,16 +246,14 @@
 
         this.validateDisabled = true;
         if (Array.isArray(value)) {
-          prop.o[prop.k] = [].concat(this.initialValue);
+          prop.o[prop.k] = total === true ? [] : [].concat(this.initialValue);
         } else {
-          prop.o[prop.k] = this.initialValue;
+          prop.o[prop.k] = total === true ? '' : this.initialValue;
         }
         /* Select 的值被代码改变时不会触发校验，
            这里需要强行触发一次，刷新 validateDisabled 的值，
            确保 Select 下一次值改变时能正确触发校验 */
         this.broadcast('ElSelect', 'fieldReset');
-
-        this.broadcast('ElTimeSelect', 'fieldReset', this.initialValue);
       },
       getRules() {
         let formRules = this.form.rules;
