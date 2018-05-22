@@ -223,7 +223,8 @@
       innerInput.setAttribute('aria-disabled', this.inputNumberDisabled);
     },
     updated() {
-      let innerInput = this.$refs.input.$refs.input;
+      if (!this.$refs || !this.$refs.input) return;
+      const innerInput = this.$refs.input.$refs.input;
       innerInput.setAttribute('aria-valuenow', this.currentValue);
     }
   };

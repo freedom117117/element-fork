@@ -1,12 +1,44 @@
 ## Changelog
 
+### 2.3.9
+
+*2018-05-18*
+
+- Fixed when the source data does not have the field specified by a TableColumn's `prop` attribute, an error would occur when the mouse moves into that column's cells, #11137
+- The `lockScroll` attribute of pop up components no longer adds an inline style to the parent element, but instead adds a class name, #11114
+- Fixed the icon of Progress not displaying when its `status` is exception, #11172
+- Fixed options' `disabled` attribute not working in filterable Cascader's filter result list, #11185
+- Fixed an issue where Table's expanded row cannot be collapsed if the data source is updated after its expansion, #11186
+- `setCurrentKey` of Tree now accepts `null` as its param to cancel the currently highlighted node, #11205
+
+### 2.3.8
+
+*2018-05-11*
+
+- Corregido que el panel DatePicker saltaba al mes actual después de escoger una fecha en un mes diferente cuando el tipo era `dates`, #10973
+- Arreglado que el `clearable Input` seguía mostrando el icono de borrado cuando era sólo de lectura, #10912
+- Arreglado que al cerrar el panel DatePicker sin modificar el valor se desencadenaba incorrectamente el evento `change`, #11017
+- Arreglado que la navegación por el teclado no funcionaba correctamente cuando Select tenia opciones agrupadas, #11058
+- Agregado el `slot named` `prefix` para Select, #11063
+- Agregado  el metodo `clearValidate` para FormItem, #11076
+- Agregado el atributo `checkOnClickNode` para Tree, #11111
+
+### 2.3.7
+
+*2018-04-29*
+
+- Corregido que Table no actualizaba el ancho de encabezado cuando la barra de desplazamiento desaparecia debido al filtrado, #10834
+- Corregido input borrable que mostraba el icono de borrado cuando su valor inicial era `nulo`, #10912
+- Corregido el disparador incorrecto del evento `active-change` después de cambiar el valor enlazado de ColorPicker programáticamente, #10903 (por @zhangbobell)
+- Corregido filterable Select que causaba un bucle infinito al navegar por las opciones usando el teclado si todas las opciones estában deshabilitadas, #10945
+
 ### 2.3.6
 
 *2018-04-21*
 
-- Fixed wrong behavior of Tree's `allow-drop` callback when `type` parameter is used, #10821
-- Now you can properly enter keywords in filterable single Select in IE11, #10822
-- Fixed single Select incorrectly triggering `blur` event after clicking an option, #10822
+- Corregido el comportamiento incorrecto del callback  `allow-drop` de Tree cuando se usaba el parámetro `type`, #10821
+- Ahora puede introducir correctamente las palabras clave en filterable Single Select en IE11, #10822
+- Corregido Single Select activaba incorrectamente el evento `blur` después de hacer clic en una opción, #10822
 
 ### 2.3.5
 

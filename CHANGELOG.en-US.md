@@ -1,5 +1,37 @@
 ## Changelog
 
+### 2.3.9
+
+*2018-05-18*
+
+- Fixed when the source data does not have the field specified by a TableColumn's `prop` attribute, an error would occur when the mouse moves into that column's cells, #11137
+- The `lockScroll` attribute of pop up components no longer adds an inline style to the parent element, but instead adds a class name, #11114
+- Fixed the icon of Progress not displaying when its `status` is exception, #11172
+- Fixed options' `disabled` attribute not working in filterable Cascader's filter result list, #11185
+- Fixed an issue where Table's expanded row cannot be collapsed if the data source is updated after its expansion, #11186
+- `setCurrentKey` of Tree now accepts `null` as its param to cancel the currently highlighted node, #11205
+
+### 2.3.8
+
+*2018-05-11*
+
+- Fixed DatePicker panel jumping to the current month after picking a date in a non-current month when `type` is dates, #10973
+- Fixed clearable Input still displaying the clear icon when readonly, #10912
+- Fixed closing the DatePicker panel without changing the value incorrectly triggering the `change` event, #11017
+- Fixed keyboard navigation not working properly when Select has grouped options, #11058
+- Added `prefix` named slot for Select, #11063
+- Added 'clearValidate` method for FormItem, #11076
+- Added `checkOnClickNode` attribute for Tree, #11111
+
+### 2.3.7
+
+*2018-04-29*
+
+- Fixed Table not updating its header widths when the scroll bar disappears due to filtering, #10834
+- Fixed clearable Input still showing the clear icon when its initial value is `null`, #10912
+- Fixed incorrect trigger of the `active-change` event after changing ColorPicker's binding value programatically, #10903 (by @zhangbobell)
+- Fixed filterable Select causing an infinite loop when navigating options using keyboard if all options are disabled, #10945
+
 ### 2.3.6
 
 *2018-04-21*
