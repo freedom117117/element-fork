@@ -197,7 +197,7 @@
       },
       showClear() {
         return this.clearable &&
-          !this.disabled &&
+          !this.inputDisabled &&
           !this.readonly &&
           this.currentValue !== '' &&
           (this.focused || this.hovering);
