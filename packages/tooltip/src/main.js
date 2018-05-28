@@ -49,6 +49,9 @@ export default {
     hideAfter: {
       type: Number,
       default: 0
+    },
+    tHeight: {
+      default: 400
     }
   },
 
@@ -59,6 +62,9 @@ export default {
     };
   },
   computed: {
+    tHeigh() {
+      return this.tHeight + 'px';
+    },
     tooltipId() {
       return `el-tooltip-${generateId()}`;
     }
@@ -80,20 +86,21 @@ export default {
     if (this.popperVM) {
       this.popperVM.node = (
         <transition
-          name={ this.transition }
-          onAfterLeave={ this.doDestroy }>
+          name={this.transition}
+          onAfterLeave={this.doDestroy}>
           <div
-            onMouseleave={ () => { this.setExpectedState(false); this.debounceClose(); } }
-            onMouseenter= { () => { this.setExpectedState(true); } }
+            style={{ overflow: 'auto', maxHeight: this.tHeigh }}
+            onMouseleave={() => { this.setExpectedState(false); this.debounceClose(); }}
+            onMouseenter={() => { this.setExpectedState(true); this.sto(); }}
             ref="popper"
             role="tooltip"
             id={this.tooltipId}
-            aria-hidden={ (this.disabled || !this.showPopper) ? 'true' : 'false' }
+            aria-hidden={(this.disabled || !this.showPopper) ? 'true' : 'false'}
             v-show={!this.disabled && this.showPopper}
             class={
               ['el-tooltip__popper', 'is-' + this.effect, this.popperClass]
             }>
-            { this.$slots.content || this.content }
+            {this.$slots.content || this.content}
           </div>
         </transition>);
     }
@@ -143,6 +150,12 @@ export default {
     }
   },
   methods: {
+    hei() {
+      return { 'maxHeight': '100px', 'overflow': 'auto' };
+    },
+    sto() {
+      window.localStorage.handleCellMouseLeave = '1';
+    },
     show() {
       this.setExpectedState(true);
       this.handleShowPopper();

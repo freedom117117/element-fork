@@ -19,6 +19,7 @@ export default {
     store: {
       required: true
     },
+    // tHeight: String,
     stripe: Boolean,
     context: {},
     rowClassName: [String, Function],
@@ -37,21 +38,21 @@ export default {
         border="0">
         <colgroup>
           {
-            this._l(this.columns, column => <col name={ column.id } />)
+            this._l(this.columns, column => <col name={column.id} />)
           }
         </colgroup>
         <tbody>
           {
             this._l(this.data, (row, $index) =>
               [<tr
-                style={ this.rowStyle ? this.getRowStyle(row, $index) : null }
-                key={ this.table.rowKey ? this.getKeyOfRow(row, $index) : $index }
-                on-dblclick={ ($event) => this.handleDoubleClick($event, row) }
-                on-click={ ($event) => this.handleClick($event, row) }
-                on-contextmenu={ ($event) => this.handleContextMenu($event, row) }
-                on-mouseenter={ _ => this.handleMouseEnter($index) }
-                on-mouseleave={ _ => this.handleMouseLeave() }
-                class={ [this.getRowClass(row, $index)] }>
+                style={this.rowStyle ? this.getRowStyle(row, $index) : null}
+                key={this.table.rowKey ? this.getKeyOfRow(row, $index) : $index}
+                on-dblclick={($event) => this.handleDoubleClick($event, row)}
+                on-click={($event) => this.handleClick($event, row)}
+                on-contextmenu={($event) => this.handleContextMenu($event, row)}
+                on-mouseenter={_ => this.handleMouseEnter($index)}
+                on-mouseleave={_ => this.handleMouseLeave()}
+                class={[this.getRowClass(row, $index)]}>
                 {
                   this._l(this.columns, (column, cellIndex) => {
                     const { rowspan, colspan } = this.getSpan(row, column, $index, cellIndex);
@@ -61,10 +62,10 @@ export default {
                       if (rowspan === 1 && colspan === 1) {
                         return (
                           <td
-                            style={ this.getCellStyle($index, cellIndex, row, column) }
-                            class={ this.getCellClass($index, cellIndex, row, column) }
-                            on-mouseenter={ ($event) => this.handleCellMouseEnter($event, row) }
-                            on-mouseleave={ this.handleCellMouseLeave }>
+                            style={this.getCellStyle($index, cellIndex, row, column)}
+                            class={this.getCellClass($index, cellIndex, row, column)}
+                            on-mouseenter={($event) => this.handleCellMouseEnter($event, row)}
+                            on-mouseleave={this.handleCellMouseLeave}>
                             {
                               column.renderCell.call(
                                 this._renderProxy,
@@ -84,12 +85,12 @@ export default {
                       } else {
                         return (
                           <td
-                            style={ this.getCellStyle($index, cellIndex, row, column) }
-                            class={ this.getCellClass($index, cellIndex, row, column) }
-                            rowspan={ rowspan }
-                            colspan={ colspan }
-                            on-mouseenter={ ($event) => this.handleCellMouseEnter($event, row) }
-                            on-mouseleave={ this.handleCellMouseLeave }>
+                            style={this.getCellStyle($index, cellIndex, row, column)}
+                            class={this.getCellClass($index, cellIndex, row, column)}
+                            rowspan={rowspan}
+                            colspan={colspan}
+                            on-mouseenter={($event) => this.handleCellMouseEnter($event, row)}
+                            on-mouseleave={this.handleCellMouseLeave}>
                             {
                               column.renderCell.call(
                                 this._renderProxy,
@@ -113,14 +114,14 @@ export default {
               </tr>,
               this.store.isRowExpanded(row)
                 ? (<tr>
-                  <td colspan={ this.columns.length } class="el-table__expanded-cell">
-                    { this.table.renderExpanded ? this.table.renderExpanded(h, { row, $index, store: this.store }) : ''}
+                  <td colspan={this.columns.length} class="el-table__expanded-cell">
+                    {this.table.renderExpanded ? this.table.renderExpanded(h, { row, $index, store: this.store }) : ''}
                   </td>
                 </tr>)
                 : ''
               ]
             ).concat(
-              <el-tooltip effect={ this.table.tooltipEffect } placement="top" ref="tooltip">
+              <el-tooltip tHeight={this.tHeigh} effect={this.table.tooltipEffect} placement="top" ref="tooltip">
                 <template slot="content">
                   <div>
                     {this._c('div', {
@@ -175,6 +176,9 @@ export default {
   },
 
   computed: {
+    tHeigh() {
+      return this.move;
+    },
     table() {
       return this.$parent;
     },
@@ -210,7 +214,11 @@ export default {
 
   data() {
     return {
-      tooltipContent: ''
+      tHeight: '',
+      move: '',
+      tooltipContent: '',
+      ru: '',
+      chu: ''
     };
   },
 
@@ -335,12 +343,20 @@ export default {
     },
 
     handleCellMouseEnter(event, row) {
+      this.move = event;
+      // 移入的时候
+      window.localStorage.handleCellMouseLeave = '1';
+      const toolti = this.$refs.tooltip;
+      if (toolti) {
+        toolti.setExpectedState(false);
+        toolti.handleClosePopper();
+      }
       const table = this.table;
       const cell = getCell(event);
 
       if (cell) {
         const column = getColumnByCell(table, cell);
-        const hoverState = table.hoverState = {cell, column, row};
+        const hoverState = table.hoverState = { cell, column, row };
         table.$emit('cell-mouse-enter', hoverState.row, hoverState.column, hoverState.cell, event);
       }
 
@@ -366,6 +382,12 @@ export default {
         } else {
           this.tooltipContent = cell.textContent || cell.innerText;
         }
+        this.coll = column;
+        this.move = this.coll.tHeight;
+        var zf = this.tooltipContent;
+        zf = zf + '';
+        zf = zf.split(';').join('<br>');
+        this.tooltipContent = zf;
         tooltip.referenceElm = cell;
         tooltip.$refs.popper && (tooltip.$refs.popper.style.display = 'none');
         tooltip.doDestroy();
@@ -375,10 +397,22 @@ export default {
     },
 
     handleCellMouseLeave(event) {
+      // 移出的时候
+      window.localStorage.handleCellMouseLeave = '0';
+      setTimeout(() => {
+        if (window.localStorage.handleCellMouseLeave === '1') {
+        } else {
+          const too = this.$refs.tooltip;
+          if (too) {
+            too.setExpectedState(false);
+            too.handleClosePopper();
+          }
+        }
+      }, 400);
       const tooltip = this.$refs.tooltip;
       if (tooltip) {
-        tooltip.setExpectedState(false);
-        tooltip.handleClosePopper();
+        // tooltip.setExpectedState(false);
+        // tooltip.handleClosePopper();
       }
       const cell = getCell(event);
       if (!cell) return;
