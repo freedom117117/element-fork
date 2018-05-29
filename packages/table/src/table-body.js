@@ -386,8 +386,18 @@ export default {
         this.move = this.coll.tHeight;
         var zf = this.tooltipContent;
         zf = zf + '';
-        zf = zf.split(';').join('<br>');
-        this.tooltipContent = zf;
+        zf = zf.split(';');
+        var b = '';
+        for (var i = 0; i < zf.length; i++) {
+          if (zf[i] !== '') {
+            if (i === zf.length - 2 || i === zf.length - 1) {
+              b += zf[i];
+            } else {
+              b += zf[i] + '<br>';
+            }
+          }
+        }
+        this.tooltipContent = b;
         tooltip.referenceElm = cell;
         tooltip.$refs.popper && (tooltip.$refs.popper.style.display = 'none');
         tooltip.doDestroy();

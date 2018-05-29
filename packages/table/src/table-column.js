@@ -166,7 +166,7 @@ export default {
     columnKey: String,
     align: String,
     headerAlign: String,
-    tHeight: { default: '400' },
+    tHeight: { default: '399' },
     showTooltipWhenOverflow: Boolean,
     showOverflowTooltip: Boolean,
     cellTooltip: Boolean, // 新增，判定是否用cell中的html显示tooltip

@@ -51,7 +51,7 @@ export default {
       default: 0
     },
     tHeight: {
-      default: 400
+      default: 399
     }
   },
 
