@@ -519,22 +519,10 @@ export default {
         shouldUpdateLayout = true;
       }
 
-<<<<<<< HEAD
       if (shouldUpdateLayout) {
         this.resizeState.width = width;
         this.resizeState.height = height;
         this.doLayout();
-=======
-      doLayout() {
-        this.layout.updateColumnsWidth();
-        if (this.shouldUpdateHeight) {
-          this.layout.updateElsHeight();
-        }
-      },
-
-      sort(prop, order) {
-        this.store.commit('sort', { prop, order });
->>>>>>> bdbc9dded0d5f3705489f185081e8811d6794da0
       }
     },
 
