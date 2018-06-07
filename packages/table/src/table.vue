@@ -213,440 +213,602 @@
 </template>
 
 <script type="text/babel">
-  import ElCheckbox from 'element-ui/packages/checkbox';
-  import debounce from 'throttle-debounce/debounce';
-  import { addResizeListener, removeResizeListener } from 'element-ui/src/utils/resize-event';
-  import Mousewheel from 'element-ui/src/directives/mousewheel';
-  import Locale from 'element-ui/src/mixins/locale';
-  import Migrating from 'element-ui/src/mixins/migrating';
-  import TableStore from './table-store';
-  import TableLayout from './table-layout';
-  import TableBody from './table-body';
-  import TableHeader from './table-header';
-  import TableFooter from './table-footer';
+import ElCheckbox from 'element-ui/packages/checkbox';
+import debounce from 'throttle-debounce/debounce';
+import {
+  addResizeListener,
+  removeResizeListener
+} from 'element-ui/src/utils/resize-event';
+import Mousewheel from 'element-ui/src/directives/mousewheel';
+import Locale from 'element-ui/src/mixins/locale';
+import Migrating from 'element-ui/src/mixins/migrating';
+import TableStore from './table-store';
+import TableLayout from './table-layout';
+import TableBody from './table-body';
+import TableHeader from './table-header';
+import TableFooter from './table-footer';
+import { getColumnByCell } from './util';
+import {removeClass } from 'element-ui/src/utils/dom';
 
-  let tableIdSeed = 1;
+let tableIdSeed = 1;
 
-  export default {
-    name: 'ElTable',
+export default {
+  name: 'ElTable',
 
-    mixins: [Locale, Migrating],
+  componentName: 'ElTable',
 
-    directives: {
-      Mousewheel
-    },
+  mixins: [Locale, Migrating],
 
-    props: {
-      data: {
-        type: Array,
-        default: function() {
-          return [];
-        }
-      },
+  directives: {
+    Mousewheel
+  },
 
-      size: String,
-
-      width: [String, Number],
-
-      height: [String, Number],
-
-      maxHeight: [String, Number],
-
-      fit: {
-        type: Boolean,
-        default: true
-      },
-
-      stripe: Boolean,
-
-      border: Boolean,
-
-      rowKey: [String, Function],
-
-      context: {},
-
-      showHeader: {
-        type: Boolean,
-        default: true
-      },
-
-      showSummary: Boolean,
-
-      sumText: String,
-
-      summaryMethod: Function,
-
-      rowClassName: [String, Function],
-
-      rowStyle: [Object, Function],
-
-      cellClassName: [String, Function],
-
-      cellStyle: [Object, Function],
-
-      headerRowClassName: [String, Function],
-
-      headerRowStyle: [Object, Function],
-
-      headerCellClassName: [String, Function],
-
-      headerCellStyle: [Object, Function],
-
-      highlightCurrentRow: Boolean,
-
-      currentRowKey: [String, Number],
-
-      emptyText: String,
-
-      expandRowKeys: Array,
-
-      defaultExpandAll: Boolean,
-
-      defaultSort: Object,
-
-      tooltipEffect: String,
-
-      spanMethod: Function,
-
-      selectOnIndeterminate: {
-        type: Boolean,
-        default: true
+  props: {
+    data: {
+      type: Array,
+      default: function() {
+        return [];
       }
     },
 
-    components: {
-      TableHeader,
-      TableFooter,
-      TableBody,
-      ElCheckbox
+    size: String,
+
+    width: [String, Number],
+
+    height: [String, Number],
+
+    maxHeight: [String, Number],
+
+    fit: {
+      type: Boolean,
+      default: true
     },
 
-    methods: {
-      getMigratingConfig() {
-        return {
-          events: {
-            expand: 'expand is renamed to expand-change'
-          }
-        };
-      },
+    stripe: Boolean,
 
-      setCurrentRow(row) {
-        this.store.commit('setCurrentRow', row);
-      },
+    border: Boolean,
 
-      toggleRowSelection(row, selected) {
-        this.store.toggleRowSelection(row, selected);
-        this.store.updateAllSelected();
-      },
+    rowKey: [String, Function],
 
-      toggleRowExpansion(row, expanded) {
-        this.store.toggleRowExpansion(row, expanded);
-      },
+    context: {},
 
-      clearSelection() {
-        this.store.clearSelection();
-      },
+    showHeader: {
+      type: Boolean,
+      default: true
+    },
 
-      clearFilter() {
-        this.store.clearFilter();
-      },
+    showSummary: Boolean,
 
-      clearSort() {
-        this.store.clearSort();
-      },
+    sumText: String,
 
-      handleMouseLeave() {
-        this.store.commit('setHoverRow', null);
-        if (this.hoverState) this.hoverState = null;
-      },
+    summaryMethod: Function,
 
-      updateScrollY() {
-        this.layout.updateScrollY();
-        this.layout.updateColumnsWidth();
-      },
+    rowClassName: [String, Function],
 
-      handleFixedMousewheel(event, data) {
-        const bodyWrapper = this.bodyWrapper;
-        if (Math.abs(data.spinY) > 0) {
-          const currentScrollTop = bodyWrapper.scrollTop;
-          if (data.pixelY < 0 && currentScrollTop !== 0) {
-            event.preventDefault();
-          }
-          if (data.pixelY > 0 && bodyWrapper.scrollHeight - bodyWrapper.clientHeight > currentScrollTop) {
-            event.preventDefault();
-          }
-          bodyWrapper.scrollTop += Math.ceil(data.pixelY / 5);
-        } else {
-          bodyWrapper.scrollLeft += Math.ceil(data.pixelX / 5);
-        }
-      },
+    rowStyle: [Object, Function],
 
-      handleHeaderFooterMousewheel(event, data) {
-        const { pixelX, pixelY } = data;
-        if (Math.abs(pixelX) >= Math.abs(pixelY)) {
-          event.preventDefault();
-          this.bodyWrapper.scrollLeft += data.pixelX / 5;
-        }
-      },
+    cellClassName: [String, Function],
 
-      bindEvents() {
-        const { headerWrapper, footerWrapper } = this.$refs;
-        const refs = this.$refs;
-        let self = this;
+    cellStyle: [Object, Function],
 
-        this.bodyWrapper.addEventListener('scroll', function() {
-          if (headerWrapper) headerWrapper.scrollLeft = this.scrollLeft;
-          if (footerWrapper) footerWrapper.scrollLeft = this.scrollLeft;
-          if (refs.fixedBodyWrapper) refs.fixedBodyWrapper.scrollTop = this.scrollTop;
-          if (refs.rightFixedBodyWrapper) refs.rightFixedBodyWrapper.scrollTop = this.scrollTop;
-          const maxScrollLeftPosition = this.scrollWidth - this.offsetWidth - 1;
-          const scrollLeft = this.scrollLeft;
-          if (scrollLeft >= maxScrollLeftPosition) {
-            self.scrollPosition = 'right';
-          } else if (scrollLeft === 0) {
-            self.scrollPosition = 'left';
-          } else {
-            self.scrollPosition = 'middle';
-          }
+    headerRowClassName: [String, Function],
+
+    headerRowStyle: [Object, Function],
+
+    headerCellClassName: [String, Function],
+
+    headerCellStyle: [Object, Function],
+
+    highlightCurrentRow: Boolean,
+
+    currentRowKey: [String, Number],
+
+    emptyText: String,
+
+    expandRowKeys: Array,
+
+    defaultExpandAll: Boolean,
+
+    defaultSort: Object,
+
+    tooltipEffect: String,
+
+    spanMethod: Function,
+
+    selectOnIndeterminate: {
+      type: Boolean,
+      default: true
+    },
+    rules: Object
+  },
+
+  components: {
+    TableHeader,
+    TableFooter,
+    TableBody,
+    ElCheckbox
+  },
+
+  methods: {
+    onFieldChange(component, callback) {
+      const cell = component.$el.parentNode.parentNode;
+      const column = getColumnByCell(this, cell) || {};
+      let row = {};
+      let line = Array.prototype.slice.call(cell.parentNode.parentNode.querySelectorAll('.el-table__row')).indexOf(cell.parentNode);
+      if (!column.property) {
+        return;
+      }
+      row[column.property] = this.store.states.data[line][column.property];
+      let promise;
+      if (typeof callback !== 'function' && window.Promise) {
+        promise = new window.Promise((resolve, reject) => {
+          callback = function(valid) {
+            valid ? resolve(valid) : reject(valid);
+          };
         });
-
-        if (this.fit) {
-          addResizeListener(this.$el, this.resizeListener);
+      }
+      let valid = true;
+      TableBody.methods.validate('change', row, column, cell, this.rules, errors => {
+        if (errors) {
+          valid = false;
         }
-      },
-
-      resizeListener() {
-        if (!this.$ready) return;
-        let shouldUpdateLayout = false;
-        const el = this.$el;
-        const { width: oldWidth, height: oldHeight } = this.resizeState;
-
-        const width = el.offsetWidth;
-        if (oldWidth !== width) {
-          shouldUpdateLayout = true;
+        if (typeof callback === 'function') {
+          callback(valid);
         }
-
-        const height = el.offsetHeight;
-        if ((this.height || this.shouldUpdateHeight) && oldHeight !== height) {
-          shouldUpdateLayout = true;
-        }
-
-        if (shouldUpdateLayout) {
-          this.resizeState.width = width;
-          this.resizeState.height = height;
-          this.doLayout();
-        }
-      },
-
-      doLayout() {
-        this.layout.updateColumnsWidth();
-        if (this.shouldUpdateHeight) {
-          this.layout.updateElsHeight();
-        }
+      }, this.store.states.data[line]);
+      if (promise) {
+        return promise;
       }
     },
 
-    created() {
-      this.tableId = 'el-table_' + tableIdSeed++;
-      this.debouncedUpdateLayout = debounce(50, () => this.doLayout());
-    },
-
-    computed: {
-      tableSize() {
-        return this.size || (this.$ELEMENT || {}).size;
-      },
-
-      bodyWrapper() {
-        return this.$refs.bodyWrapper;
-      },
-
-      shouldUpdateHeight() {
-        return this.height ||
-          this.maxHeight ||
-          this.fixedColumns.length > 0 ||
-          this.rightFixedColumns.length > 0;
-      },
-
-      selection() {
-        return this.store.states.selection;
-      },
-
-      columns() {
-        return this.store.states.columns;
-      },
-
-      tableData() {
-        return this.store.states.data;
-      },
-
-      fixedColumns() {
-        return this.store.states.fixedColumns;
-      },
-
-      rightFixedColumns() {
-        return this.store.states.rightFixedColumns;
-      },
-
-      bodyWidth() {
-        const { bodyWidth, scrollY, gutterWidth } = this.layout;
-        return bodyWidth ? bodyWidth - (scrollY ? gutterWidth : 0) + 'px' : '';
-      },
-
-      bodyHeight() {
-        if (this.height) {
-          return {
-            height: this.layout.bodyHeight ? this.layout.bodyHeight + 'px' : ''
+    tableValidate(callback) {
+      if (!this.data) {
+        console.warn(
+          '[Element Warn][Table]data is required for validate to work!'
+        );
+        return;
+      }
+      let promise;
+      // if no callback, return promise
+      if (typeof callback !== 'function' && window.Promise) {
+        promise = new window.Promise((resolve, reject) => {
+          callback = function(valid) {
+            valid ? resolve(valid) : reject(valid);
           };
-        } else if (this.maxHeight) {
-          return {
-            'max-height': (this.showHeader
-              ? this.maxHeight - this.layout.headerHeight - this.layout.footerHeight
-              : this.maxHeight - this.layout.footerHeight) + 'px'
-          };
-        }
-        return {};
-      },
-
-      fixedBodyHeight() {
-        if (this.height) {
-          return {
-            height: this.layout.fixedBodyHeight ? this.layout.fixedBodyHeight + 'px' : ''
-          };
-        } else if (this.maxHeight) {
-          let maxHeight = this.layout.scrollX ? this.maxHeight - this.layout.gutterWidth : this.maxHeight;
-
-          if (this.showHeader) {
-            maxHeight -= this.layout.headerHeight;
-          }
-
-          maxHeight -= this.layout.footerHeight;
-
-          return {
-            'max-height': maxHeight + 'px'
-          };
-        }
-
-        return {};
-      },
-
-      fixedHeight() {
-        if (this.maxHeight) {
-          if (this.showSummary) {
-            return {
-              bottom: 0
-            };
-          }
-          return {
-            bottom: (this.layout.scrollX && this.data.length) ? this.layout.gutterWidth + 'px' : ''
-          };
-        } else {
-          if (this.showSummary) {
-            return {
-              height: this.layout.tableHeight ? this.layout.tableHeight + 'px' : ''
-            };
-          }
-          return {
-            height: this.layout.viewportHeight ? this.layout.viewportHeight + 'px' : ''
-          };
+        });
+      }
+      let valid = true;
+      const node = this.$refs.bodyWrapper.querySelectorAll('.el-table__row');
+      for (let i = 0; i < node.length; i++) {
+        for (let j = 0; j < node[i].childNodes.length; j++) {
+          let check = i + 1 === node.length && j + 1 === node[i].childNodes.length;
+          const cell = node[i].childNodes[j];
+          const column = getColumnByCell(this, cell) || {};
+          let row = {};
+          row[column.property] = this.store.states.data[i][column.property];
+          TableBody.methods.validate('', row, column, cell, this.rules, errors => {
+            if (errors) {
+              valid = false;
+            }
+            if (typeof callback === 'function' && check) {
+              callback(valid);
+            }
+          }, this.store.states.data[i]);
         }
       }
-    },
-
-    watch: {
-      height: {
-        immediate: true,
-        handler(value) {
-          this.layout.setHeight(value);
-        }
-      },
-
-      maxHeight: {
-        immediate: true,
-        handler(value) {
-          this.layout.setMaxHeight(value);
-        }
-      },
-
-      currentRowKey(newVal) {
-        this.store.setCurrentRowKey(newVal);
-      },
-
-      data: {
-        immediate: true,
-        handler(value) {
-          this.store.commit('setData', value);
-          if (this.$ready) {
-            this.$nextTick(() => {
-              this.doLayout();
-            });
-          }
-        }
-      },
-
-      expandRowKeys: {
-        immediate: true,
-        handler(newVal) {
-          if (newVal) {
-            this.store.setExpandRowKeys(newVal);
-          }
-        }
+      if (promise) {
+        return promise;
       }
     },
-
-    destroyed() {
-      if (this.resizeListener) removeResizeListener(this.$el, this.resizeListener);
+    resetTableValidate() {
+      const node = this.$el.querySelectorAll('.table-error');
+      for (let i = 0; i < node.length; i++) {
+        removeClass(node[i].parentNode, 'is-error');
+        node[i].remove();
+      }
     },
-
-    mounted() {
-      this.bindEvents();
-      this.store.updateColumns();
-      this.doLayout();
-
-      this.resizeState = {
-        width: this.$el.offsetWidth,
-        height: this.$el.offsetHeight
+    getMigratingConfig() {
+      return {
+        events: {
+          expand: 'expand is renamed to expand-change'
+        }
       };
+    },
 
-      // init filters
-      this.store.states.columns.forEach(column => {
-        if (column.filteredValue && column.filteredValue.length) {
-          this.store.commit('filterChange', {
-            column,
-            values: column.filteredValue,
-            silent: true
+    setCurrentRow(row) {
+      this.store.commit('setCurrentRow', row);
+    },
+
+    toggleRowSelection(row, selected) {
+      this.store.toggleRowSelection(row, selected);
+      this.store.updateAllSelected();
+    },
+
+    toggleRowExpansion(row, expanded) {
+      this.store.toggleRowExpansion(row, expanded);
+    },
+
+    clearSelection() {
+      this.store.clearSelection();
+    },
+
+    clearFilter() {
+      this.store.clearFilter();
+    },
+
+    clearSort() {
+      this.store.clearSort();
+    },
+
+    handleMouseLeave() {
+      this.store.commit('setHoverRow', null);
+      if (this.hoverState) this.hoverState = null;
+    },
+
+    updateScrollY() {
+      this.layout.updateScrollY();
+      this.layout.updateColumnsWidth();
+    },
+
+    handleFixedMousewheel(event, data) {
+      const bodyWrapper = this.bodyWrapper;
+      if (Math.abs(data.spinY) > 0) {
+        const currentScrollTop = bodyWrapper.scrollTop;
+        if (data.pixelY < 0 && currentScrollTop !== 0) {
+          event.preventDefault();
+        }
+        if (
+          data.pixelY > 0 &&
+          bodyWrapper.scrollHeight - bodyWrapper.clientHeight > currentScrollTop
+        ) {
+          event.preventDefault();
+        }
+        bodyWrapper.scrollTop += Math.ceil(data.pixelY / 5);
+      } else {
+        bodyWrapper.scrollLeft += Math.ceil(data.pixelX / 5);
+      }
+    },
+
+    handleHeaderFooterMousewheel(event, data) {
+      const { pixelX, pixelY } = data;
+      if (Math.abs(pixelX) >= Math.abs(pixelY)) {
+        event.preventDefault();
+        this.bodyWrapper.scrollLeft += data.pixelX / 5;
+      }
+    },
+
+    bindEvents() {
+      const { headerWrapper, footerWrapper } = this.$refs;
+      const refs = this.$refs;
+      let self = this;
+
+      this.bodyWrapper.addEventListener('scroll', function() {
+        if (headerWrapper) headerWrapper.scrollLeft = this.scrollLeft;
+        if (footerWrapper) footerWrapper.scrollLeft = this.scrollLeft;
+        if (refs.fixedBodyWrapper) refs.fixedBodyWrapper.scrollTop = this.scrollTop;
+        if (refs.rightFixedBodyWrapper) refs.rightFixedBodyWrapper.scrollTop = this.scrollTop;
+        const maxScrollLeftPosition = this.scrollWidth - this.offsetWidth - 1;
+        const scrollLeft = this.scrollLeft;
+        if (scrollLeft >= maxScrollLeftPosition) {
+          self.scrollPosition = 'right';
+        } else if (scrollLeft === 0) {
+          self.scrollPosition = 'left';
+        } else {
+          self.scrollPosition = 'middle';
+        }
+      });
+
+      if (this.fit) {
+        addResizeListener(this.$el, this.resizeListener);
+      }
+    },
+
+    resizeListener() {
+      if (!this.$ready) return;
+      let shouldUpdateLayout = false;
+      const el = this.$el;
+      const { width: oldWidth, height: oldHeight } = this.resizeState;
+
+      const width = el.offsetWidth;
+      if (oldWidth !== width) {
+        shouldUpdateLayout = true;
+      }
+
+      const height = el.offsetHeight;
+      if ((this.height || this.shouldUpdateHeight) && oldHeight !== height) {
+        shouldUpdateLayout = true;
+      }
+
+      if (shouldUpdateLayout) {
+        this.resizeState.width = width;
+        this.resizeState.height = height;
+        this.doLayout();
+      }
+    },
+
+    doLayout() {
+      this.layout.updateColumnsWidth();
+      if (this.shouldUpdateHeight) {
+        this.layout.updateElsHeight();
+      }
+    },
+
+    sort(prop, order) {
+      this.store.commit('sort', { prop, order });
+    }
+  },
+
+  created() {
+    this.tableId = 'el-table_' + tableIdSeed++;
+    this.debouncedUpdateLayout = debounce(50, () => this.doLayout());
+  },
+
+  computed: {
+    tableSize() {
+      return this.size || (this.$ELEMENT || {}).size;
+    },
+
+    bodyWrapper() {
+      return this.$refs.bodyWrapper;
+    },
+
+    shouldUpdateHeight() {
+      return (
+        this.height ||
+        this.maxHeight ||
+        this.fixedColumns.length > 0 ||
+        this.rightFixedColumns.length > 0
+      );
+    },
+
+    selection() {
+      return this.store.states.selection;
+    },
+
+    columns() {
+      return this.store.states.columns;
+    },
+
+    tableData() {
+      return this.store.states.data;
+    },
+
+    fixedColumns() {
+      return this.store.states.fixedColumns;
+    },
+
+    rightFixedColumns() {
+      return this.store.states.rightFixedColumns;
+    },
+
+    bodyWidth() {
+      const { bodyWidth, scrollY, gutterWidth } = this.layout;
+      return bodyWidth ? bodyWidth - (scrollY ? gutterWidth : 0) + 'px' : '';
+    },
+
+    bodyHeight() {
+      if (this.height) {
+        return {
+          height: this.layout.bodyHeight ? this.layout.bodyHeight + 'px' : ''
+        };
+      } else if (this.maxHeight) {
+        return {
+          'max-height':
+            (this.showHeader
+              ? this.maxHeight -
+                this.layout.headerHeight -
+                this.layout.footerHeight
+              : this.maxHeight - this.layout.footerHeight) + 'px'
+        };
+      }
+      return {};
+    },
+
+    fixedBodyHeight() {
+      if (this.height) {
+        return {
+          height: this.layout.fixedBodyHeight
+            ? this.layout.fixedBodyHeight + 'px'
+            : ''
+        };
+      } else if (this.maxHeight) {
+        let maxHeight = this.layout.scrollX
+          ? this.maxHeight - this.layout.gutterWidth
+          : this.maxHeight;
+
+        if (this.showHeader) {
+          maxHeight -= this.layout.headerHeight;
+        }
+
+        maxHeight -= this.layout.footerHeight;
+
+        return {
+          'max-height': maxHeight + 'px'
+        };
+      }
+
+      return {};
+    },
+
+    fixedHeight() {
+      if (this.maxHeight) {
+        if (this.showSummary) {
+          return {
+            bottom: 0
+          };
+        }
+        return {
+          bottom:
+            this.layout.scrollX && this.data.length
+              ? this.layout.gutterWidth + 'px'
+              : ''
+        };
+      } else {
+        if (this.showSummary) {
+          return {
+            height: this.layout.tableHeight
+              ? this.layout.tableHeight + 'px'
+              : ''
+          };
+        }
+        return {
+          height: this.layout.viewportHeight
+            ? this.layout.viewportHeight + 'px'
+            : ''
+        };
+      }
+    }
+  },
+
+  watch: {
+    height: {
+      immediate: true,
+      handler(value) {
+        this.layout.setHeight(value);
+      }
+    },
+
+    maxHeight: {
+      immediate: true,
+      handler(value) {
+        this.layout.setMaxHeight(value);
+      }
+    },
+
+    currentRowKey(newVal) {
+      this.store.setCurrentRowKey(newVal);
+    },
+
+    data: {
+      immediate: true,
+      handler(value) {
+        this.store.commit('setData', value);
+        if (this.$ready) {
+          this.$nextTick(() => {
+            this.doLayout();
           });
         }
-      });
-
-      this.$ready = true;
+      }
     },
 
-    data() {
-      const store = new TableStore(this, {
-        rowKey: this.rowKey,
-        defaultExpandAll: this.defaultExpandAll,
-        selectOnIndeterminate: this.selectOnIndeterminate
-      });
-      const layout = new TableLayout({
-        store,
-        table: this,
-        fit: this.fit,
-        showHeader: this.showHeader
-      });
-      return {
-        layout,
-        store,
-        isHidden: false,
-        renderExpanded: null,
-        resizeProxyVisible: false,
-        resizeState: {
-          width: null,
-          height: null
-        },
-        // 是否拥有多级表头
-        isGroup: false,
-        scrollPosition: 'left'
-      };
+    expandRowKeys: {
+      immediate: true,
+      handler(newVal) {
+        if (newVal) {
+          this.store.setExpandRowKeys(newVal);
+        }
+      }
     }
-  };
+  },
+
+  destroyed() {
+    if (this.resizeListener) removeResizeListener(this.$el, this.resizeListener);
+  },
+
+  mounted() {
+    this.bindEvents();
+    this.store.updateColumns();
+    this.doLayout();
+
+    this.resizeState = {
+      width: this.$el.offsetWidth,
+      height: this.$el.offsetHeight
+    };
+
+    // init filters
+    this.store.states.columns.forEach(column => {
+      if (column.filteredValue && column.filteredValue.length) {
+        this.store.commit('filterChange', {
+          column,
+          values: column.filteredValue,
+          silent: true
+        });
+      }
+    });
+
+    this.$ready = true;
+
+    this.$on('el.table.change', this.onFieldChange);
+  },
+
+  data() {
+    const store = new TableStore(this, {
+      rowKey: this.rowKey,
+      defaultExpandAll: this.defaultExpandAll,
+      selectOnIndeterminate: this.selectOnIndeterminate
+    });
+    const layout = new TableLayout({
+      store,
+      table: this,
+      fit: this.fit,
+      showHeader: this.showHeader
+    });
+    return {
+      layout,
+      store,
+      isHidden: false,
+      renderExpanded: null,
+      resizeProxyVisible: false,
+      resizeState: {
+        width: null,
+        height: null
+      },
+      // 是否拥有多级表头
+      isGroup: false,
+      scrollPosition: 'left'
+    };
+  }
+};
 </script>
+<style lang="scss">
+.el-table__row .is-error .el-input__inner, .el-table__row .is-error .el-input__inner:focus, .el-table__row .is-error .el-textarea__inner, .el-table__row .is-error .el-textarea__inner:focus{
+  border-color:#f56c6c
+}
+.el-table th.is-required .cell:after{
+  content: '*';
+  color:#f56c6c;
+  margin-left: 4px
+}
+.el-table .is-error .cell {
+  position: relative;
+  .table-error {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    top: 0;
+    bottom: 0;
+    right: 3px;
+    &::after {
+      content: '!';
+      display: inline-block;
+      width: 15px;
+      height: 15px;
+      font-size: 12px;
+      line-height: 15px;
+      text-align: center;
+      border-radius: 15px;
+      background: #f56c6c;
+      color: white;
+    }
+  }
+}
+.table-error-message {
+  padding: 5px;
+  font-size: 12px;
+  border: 1px solid gainsboro;
+  border-bottom: 0;
+  z-index: 9999999;
+  background: #f56c6c;
+  color: white;
+  border-radius: 3px;
+}
+.table-error-rect {
+  display: inline-block;
+  width: 0px;
+  height: 0px;
+  border-top: 6px solid #f56c6c;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+}
+</style>
+

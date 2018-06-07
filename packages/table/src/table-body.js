@@ -4,6 +4,9 @@ import ElCheckbox from 'element-ui/packages/checkbox';
 import ElTooltip from 'element-ui/packages/tooltip';
 import debounce from 'throttle-debounce/debounce';
 import LayoutObserver from './layout-observer';
+import AsyncValidator from 'async-validator';
+import { noop } from 'element-ui/src/utils/util';
+import objectAssign from 'element-ui/src/utils/merge';
 
 export default {
   name: 'ElTableBody',
@@ -19,7 +22,6 @@ export default {
     store: {
       required: true
     },
-    // tHeight: String,
     stripe: Boolean,
     context: {},
     rowClassName: [String, Function],
@@ -62,8 +64,10 @@ export default {
                       if (rowspan === 1 && colspan === 1) {
                         return (
                           <td
+
                             style={this.getCellStyle($index, cellIndex, row, column)}
                             class={this.getCellClass($index, cellIndex, row, column)}
+                            on-focusout={($event) => this.handleCellFocusOut($event, row)}
                             on-mouseenter={($event) => this.handleCellMouseEnter($event, row)}
                             on-mouseleave={this.handleCellMouseLeave}>
                             {
@@ -85,10 +89,12 @@ export default {
                       } else {
                         return (
                           <td
+
                             style={this.getCellStyle($index, cellIndex, row, column)}
                             class={this.getCellClass($index, cellIndex, row, column)}
                             rowspan={rowspan}
                             colspan={colspan}
+                            on-focusout={($event) => this.handleCellFocusOut($event, row)}
                             on-mouseenter={($event) => this.handleCellMouseEnter($event, row)}
                             on-mouseleave={this.handleCellMouseLeave}>
                             {
@@ -429,6 +435,93 @@ export default {
 
       const oldHoverState = this.table.hoverState || {};
       this.table.$emit('cell-mouse-leave', oldHoverState.row, oldHoverState.column, oldHoverState.cell, event);
+    },
+    handleCellFocusOut(event, row) {
+      const cell = getCell(event);
+      if (!cell) return;
+      if (cell) {
+        const column = getColumnByCell(this.table, cell) || {};
+        this.validate('blur', row, column, cell, this.table.rules);
+        this.table.$emit('cell-blur', row, column, cell, this.table.rules, event);
+      }
+    },
+    validate(trigger, row, column, cell, rules, callback = noop, others) {
+      if (!others) {
+        others = row;
+      }
+      if ((!rules || rules.length === 0)) {
+        callback();
+        return true;
+      }
+      const descriptor = {};
+      if (!column.property) {
+        // console.warn('[Element Warn][Table]model is required for validate to work!');
+        callback();
+        return true;
+      }
+      if (!rules[column.property]) {
+        callback();
+        return true;
+      }
+      if (trigger !== '' && rules[column.property][0].trigger !== trigger) {
+        callback();
+        return true;
+      }
+      descriptor[column.property] = (rules[column.property] || []).map(rule => objectAssign({}, rule));
+      const validator = new AsyncValidator(descriptor);
+      const model = {};
+      model[column.property] = row[column.property];
+      validator.validate(model, { firstFields: true }, (errors, fields) => {
+
+        this.validateMessage = errors ? errors[0].message : '';
+        if (cell.querySelector('.table-error')) {
+          cell.querySelector('.table-error').remove();
+        }
+        if (hasClass(cell, 'is-error')) {
+          removeClass(cell, 'is-error');
+        }
+        if (errors) {
+          addClass(cell, 'is-error');
+          let node = document.createElement('div');
+          node.setAttribute('errormessage', this.validateMessage);
+          node.setAttribute('class', 'table-error');
+          // node.innerText = '!';
+          node.onmouseenter = function(e) {
+            let position = e.target.getClientRects()[0];
+            let pop = document.createElement('div');
+            let rect = document.createElement('div');
+            rect.setAttribute('class', 'table-error-rect');
+            pop.style.position = 'absolute';
+            pop.style.left = position.left + position.width / 2 + 'px';
+            pop.style.top = position.top + position.height / 2 - 50 + document.documentElement.scrollTop + 'px';
+
+            pop.setAttribute('class', 'table-error-message');
+            let popNode = document.createTextNode(e.target.getAttribute('errormessage'));
+            pop.appendChild(popNode);
+            document.body.appendChild(pop);
+
+            let width = parseFloat(window.getComputedStyle(document.body.querySelector('.table-error-message')).width);
+            let height = parseFloat(window.getComputedStyle(document.body.querySelector('.table-error-message')).height);
+            document.body.querySelector('.table-error-message').remove();
+            pop.style.left = position.left - width / 2 + 'px';
+            rect.style.left = position.left + position.width / 2 - 6 + 'px';
+            rect.style.position = pop.style.position;
+            rect.style.top = position.top + position.height / 2 - 40 + height + document.documentElement.scrollTop + 'px';
+            document.body.appendChild(rect);
+            document.body.appendChild(pop);
+
+          };
+          node.onmouseleave = function(e) {
+            if (document.body.querySelector('.table-error-message')) {
+              document.body.querySelector('.table-error-message').remove();
+              document.body.querySelector('.table-error-rect').remove();
+            }
+          };
+          cell.querySelector('.cell').appendChild(node);
+
+        };
+        callback(this.validateMessage);
+      }, others);
     },
 
     handleMouseEnter(index) {

@@ -503,6 +503,7 @@
         if (!valueEquals(this.value, val)) {
           this.$emit('change', val);
           this.dispatch('ElFormItem', 'el.form.change', val);
+          this.dispatch('ElTable', 'el.table.change', this);
         }
       },
 

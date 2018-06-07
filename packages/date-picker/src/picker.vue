@@ -886,6 +886,7 @@ export default {
       if (!valueEquals(val, this.valueOnOpen)) {
         this.$emit('change', val);
         this.dispatch('ElFormItem', 'el.form.change', val);
+        this.dispatch('ElTable', 'el.table.change', this);
         this.valueOnOpen = val;
       }
     },
