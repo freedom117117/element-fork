@@ -1,15 +1,60 @@
 ## Changelog
 
+### 2.4.0 Fullerene
+
+*2018-05-28*
+
+#### New features
+- General
+  - Dev tool and bundler is switched to native webpack, #11216
+  - Now you can globally set the initial z-index of popups, #11257
+- Autocomplete
+  - Added `hide-loading` attribute, #11260
+- Button
+  - Now you can use the `size` attribute on circle buttons to control their sizes, #11275
+- InputNumber
+  - Added `precision` attribute, #11281
+- Tabs
+  - Added `before-leave` attribute, #11259
+  - Added `lazy` attribute, #11167（by @Kingwl）
+- Table
+  - Added `sort` method to manually sort the table, #11311
+
+#### Bug fixes
+- Input
+  - Fixed an issue that causes a re-render when using the Chinese IME to quickly input text, #11235 (by @STLighter)
+- Popover
+  - Fixed the console error when the triggering element is Radio or Checkbox, #11265
+- Breadcrumb
+  - Fixed the `to` attribute not supporting dynamic update, #11286
+- Upload
+  - Fixed the console error when a File is resolved in the returned Promise of the `beforeUpload` method, #11297 (by @qusiba)
+- Tooltip
+  - Fixed arrow not positioned correctly when content is empty, #11335
+- Autocomplete
+  - Fixed incorrect input suggestions after deleting keyword quickly, #11323
+- ColorPicker
+  - Fixed `active-change` event incorrectly triggering when picker dropdown is closed, #11304
+- Table
+  - Fixed style error of oversized filter panel, #11314
+  - Fixed currently selected row not retained when the table is sorted, #11348
+- Checkbox
+  - Fixed single checkbox not supporting validation, #11271
+- Radio
+  - Fixed disabled Radio still being selected when pressing space key, #11303
+- MessageBox
+  - Fixed the `el-popup-parent--hidden` class not removed when opening MessageBox in succession, #11371
+
 ### 2.3.9
 
 *2018-05-18*
 
-- Fixed when the source data does not have the field specified by a TableColumn's `prop` attribute, an error would occur when the mouse moves into that column's cells, #11137
-- The `lockScroll` attribute of pop up components no longer adds an inline style to the parent element, but instead adds a class name, #11114
-- Fixed the icon of Progress not displaying when its `status` is exception, #11172
-- Fixed options' `disabled` attribute not working in filterable Cascader's filter result list, #11185
-- Fixed an issue where Table's expanded row cannot be collapsed if the data source is updated after its expansion, #11186
-- `setCurrentKey` of Tree now accepts `null` as its param to cancel the currently highlighted node, #11205
+- Corregido que cuando los datos de origen no tenian el campo especificado por el atributo `prop` de una TableColumn, se producía un error al moverse el ratón dentro de las celdas de esa columna, #11137.
+- El atributo `lockScroll` de los componentes pop-up ya no añade un inline style al elemento padre, sino que añade un nombre de clase, #1111114.
+- Arreglado el icono de Progreso que no se mostraba cuando su `status` era `exception`, #11172
+- El atributo `disabled` no funcionaba en la lista de resultados del filtro de Cascader, #11185
+- Se ha corregido un problema por el que la fila expandida de la Tabla no se podía contraer si los datos de origen se actualizaban después de su expansión, #11186.
+- `setCurrentKey` de Tree ahora acepta `null` como parámetro para cancelar el nodo actualmente resaltado, #11205
 
 ### 2.3.8
 

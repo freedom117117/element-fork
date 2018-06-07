@@ -1062,6 +1062,22 @@ describe('Table', () => {
         }, DELAY);
       });
 
+      it('sortable orders', done => {
+        const vm = createTable('', '', '', 'sortable :sort-orders="[\'descending\', \'ascending\']"', {});
+
+        setTimeout(_ => {
+          const elm = vm.$el.querySelector('.caret-wrapper');
+          elm.click();
+
+          setTimeout(_ => {
+            const lastCells = vm.$el.querySelectorAll('.el-table__body-wrapper tbody tr td:last-child');
+            expect(toArray(lastCells).map(node => node.textContent)).to.eql(['100', '95', '92', '92', '80']);
+            destroyVM(vm);
+            done();
+          }, DELAY);
+        }, DELAY);
+      });
+
       it('sortable method', done => {
         const vm = createTable(
           'sortable :sort-method="sortMethod"', '', '', '', {
@@ -1693,6 +1709,43 @@ describe('Table', () => {
 
       destroyVM(vm);
     });
+
+    it('sort', done => {
+      const vm = createVue({
+        template: `
+          <el-table ref="table" :data="testData" :default-sort = "{prop: 'runtime', order: 'ascending'}">
+            <el-table-column prop="name" />
+            <el-table-column prop="release" />
+            <el-table-column prop="director" />
+            <el-table-column prop="runtime"/>
+          </el-table>
+        `,
+
+        created() {
+          this.testData = getTestData();
+        },
+
+        data() {
+          return { testData: this.testData };
+        }
+      });
+
+      setTimeout(() => {
+        const lastCells = vm.$el.querySelectorAll('.el-table__body-wrapper tbody tr td:last-child');
+        expect(toArray(lastCells).map(node => node.textContent))
+          .to.eql(['80', '92', '92', '95', '100']);
+
+        vm.$nextTick(() => {
+          vm.testData = vm.testData.map(data => Object.assign(data, { runtime: -data.runtime }));
+          vm.$refs.table.sort('runtime', 'ascending');
+          vm.$nextTick(() => {
+            expect(toArray(lastCells).map(node => node.textContent))
+              .to.eql(['-100', '-95', '-92', '-92', '-80']);
+            done();
+          });
+        });
+      }, DELAY);
+    });
   });
 
   it('hover', done => {
@@ -1732,7 +1785,7 @@ describe('Table', () => {
           <el-table-column prop="name" label="片名" />
           <el-table-column prop="release" label="发行日期" />
           <el-table-column prop="director" label="导演" />
-          <el-table-column prop="runtime" label="时长（分）" />
+          <el-table-column prop="runtime" label="时长（分）" sortable />
         </el-table>
       `,
 
@@ -1747,12 +1800,22 @@ describe('Table', () => {
         expect(tr.classList.contains('current-row')).to.be.true;
         const rows = vm.$el.querySelectorAll('.el-table__body-wrapper tbody tr');
 
-        triggerEvent(rows[2], 'click', true, false);
+        triggerEvent(rows[1], 'click', true, false);
         setTimeout(_ => {
           expect(tr.classList.contains('current-row')).to.be.false;
-          expect(rows[2].classList.contains('current-row')).to.be.true;
-          destroyVM(vm);
-          done();
+          expect(rows[1].classList.contains('current-row')).to.be.true;
+
+          const ths = vm.$el.querySelectorAll('.el-table__header-wrapper thead th');
+          triggerEvent(ths[3], 'click', true, false);
+
+          setTimeout(_ => {
+            const rows = vm.$el.querySelectorAll('.el-table__body-wrapper tbody tr');
+
+            expect(rows[1].classList.contains('current-row')).to.be.false;
+            expect(rows[3].classList.contains('current-row')).to.be.true;
+            destroyVM(vm);
+            done();
+          }, DELAY);
         }, DELAY);
       }, DELAY);
     }, DELAY);
