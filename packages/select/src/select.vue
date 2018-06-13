@@ -152,7 +152,7 @@
   import { valueEquals } from 'element-ui/src/utils/util';
   import NavigationMixin from './navigation-mixin';
   import { isKorean } from 'element-ui/src/utils/shared';
-
+  import tableInject from 'element-ui/src/mixins/tableInject';
   const sizeMap = {
     'medium': 36,
     'small': 32,
@@ -160,7 +160,7 @@
   };
 
   export default {
-    mixins: [Emitter, Locale, Focus('reference'), NavigationMixin],
+    mixins: [Emitter, Locale, Focus('reference'), NavigationMixin, tableInject],
 
     name: 'ElSelect',
 
@@ -233,7 +233,7 @@
       },
 
       selectDisabled() {
-        return this.disabled || (this.elForm || {}).disabled;
+        return this.disabled || (this.elForm || {}).disabled || this.disabledForTable;
       },
 
       collapseTagSize() {

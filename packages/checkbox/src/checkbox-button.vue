@@ -45,11 +45,11 @@
 </template>
 <script>
   import Emitter from 'element-ui/src/mixins/emitter';
-
+  import tableInject from 'element-ui/src/mixins/tableInject';
   export default {
     name: 'ElCheckboxButton',
 
-    mixins: [Emitter],
+    mixins: [Emitter, tableInject],
 
     inject: {
       elForm: {
@@ -152,8 +152,8 @@
 
       isDisabled() {
         return this._checkboxGroup
-          ? this._checkboxGroup.disabled || this.disabled || (this.elForm || {}).disabled
-          : this.disabled || (this.elForm || {}).disabled;
+          ? this._checkboxGroup.disabled || this.disabled || (this.elForm || {}).disabled || this.disabledForTable
+          : this.disabled || (this.elForm || {}).disabled || this.disabledForTable;
       }
     },
     methods: {

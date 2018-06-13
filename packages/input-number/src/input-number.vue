@@ -53,10 +53,10 @@
   import ElInput from 'element-ui/packages/input';
   import Focus from 'element-ui/src/mixins/focus';
   import RepeatClick from 'element-ui/src/directives/repeat-click';
-
+  import tableInject from 'element-ui/src/mixins/tableInject';
   export default {
     name: 'ElInputNumber',
-    mixins: [Focus('input')],
+    mixins: [Focus('input'), tableInject],
     inject: {
       elForm: {
         default: ''
@@ -161,7 +161,7 @@
         return this.size || this._elFormItemSize || (this.$ELEMENT || {}).size;
       },
       inputNumberDisabled() {
-        return this.disabled || (this.elForm || {}).disabled;
+        return this.disabled || (this.elForm || {}).disabled || this.disabledForTable;
       },
       currentInputValue() {
         const currentValue = this.currentValue;

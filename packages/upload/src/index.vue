@@ -4,13 +4,14 @@ import Upload from './upload';
 import IframeUpload from './iframe-upload';
 import ElProgress from 'element-ui/packages/progress';
 import Migrating from 'element-ui/src/mixins/migrating';
+import tableInject from 'element-ui/src/mixins/tableInject';
 
 function noop() {}
 
 export default {
   name: 'ElUpload',
 
-  mixins: [Migrating],
+  mixins: [Migrating, tableInject],
 
   components: {
     ElProgress,
@@ -119,7 +120,7 @@ export default {
 
   computed: {
     uploadDisabled() {
-      return this.disabled || (this.elForm || {}).disabled;
+      return this.disabled || (this.elForm || {}).disabled || this.disabledForTable;
     }
   },
 

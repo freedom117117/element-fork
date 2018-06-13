@@ -47,6 +47,7 @@ export default {
           {
             this._l(this.data, (row, $index) =>
               [<tr
+                disabled = {this.table.tableWithStatus && row.dataStatus}
                 style={this.rowStyle ? this.getRowStyle(row, $index) : null}
                 key={this.table.rowKey ? this.getKeyOfRow(row, $index) : $index}
                 on-dblclick={($event) => this.handleDoubleClick($event, row)}
@@ -309,7 +310,9 @@ export default {
       if (this.store.states.expandRows.indexOf(row) > -1) {
         classes.push('expanded');
       }
-
+      if (this.table.tableWithStatus && row.dataStatus) {
+        classes.push(row.dataStatus);
+      }
       return classes.join(' ');
     },
 

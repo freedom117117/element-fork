@@ -57,11 +57,12 @@
   import ElInputNumber from 'element-ui/packages/input-number';
   import SliderButton from './button.vue';
   import Emitter from 'element-ui/src/mixins/emitter';
+  import tableInject from 'element-ui/src/mixins/tableInject';
 
   export default {
     name: 'ElSlider',
 
-    mixins: [Emitter],
+    mixins: [Emitter, tableInject],
 
     inject: {
       elForm: {
@@ -343,7 +344,7 @@
       },
 
       sliderDisabled() {
-        return this.disabled || (this.elForm || {}).disabled;
+        return this.disabled || (this.elForm || {}).disabled || this.disabledForTable;
       }
     },
 

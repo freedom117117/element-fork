@@ -34,11 +34,11 @@
 <script>
   import { hasClass } from 'element-ui/src/utils/dom';
   import Migrating from 'element-ui/src/mixins/migrating';
-
+  import tableInject from 'element-ui/src/mixins/tableInject';
   export default {
     name: 'ElRate',
 
-    mixins: [Migrating],
+    mixins: [Migrating, tableInject],
 
     inject: {
       elForm: {
@@ -215,7 +215,7 @@
       },
 
       rateDisabled() {
-        return this.disabled || (this.elForm || {}).disabled;
+        return this.disabled || (this.elForm || {}).disabled || this.disabledForTable;
       }
     },
 

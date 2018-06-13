@@ -69,7 +69,7 @@ import Locale from 'element-ui/src/mixins/locale';
 import { t } from 'element-ui/src/locale';
 import debounce from 'throttle-debounce/debounce';
 import { generateId } from 'element-ui/src/utils/util';
-
+import tableInject from 'element-ui/src/mixins/tableInject';
 const popperMixin = {
   props: {
     placement: {
@@ -92,7 +92,7 @@ export default {
 
   directives: { Clickoutside },
 
-  mixins: [popperMixin, emitter, Locale],
+  mixins: [popperMixin, emitter, Locale, tableInject],
 
   inject: {
     elForm: {
@@ -214,7 +214,7 @@ export default {
       return this.size || this._elFormItemSize || (this.$ELEMENT || {}).size;
     },
     cascaderDisabled() {
-      return this.disabled || (this.elForm || {}).disabled;
+      return this.disabled || (this.elForm || {}).disabled || this.disabledForTable;
     },
     id() {
       return generateId();

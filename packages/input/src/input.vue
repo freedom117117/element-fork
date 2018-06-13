@@ -11,6 +11,7 @@
       'el-input--suffix': $slots.suffix || suffixIcon || clearable
     }
     ]"
+    ref="aaa"
     @mouseenter="hovering = true"
     @mouseleave="hovering = false"
   >
@@ -98,6 +99,7 @@
 <script>
   import emitter from 'element-ui/src/mixins/emitter';
   import Migrating from 'element-ui/src/mixins/migrating';
+  import tableInject from 'element-ui/src/mixins/tableInject';
   import calcTextareaHeight from './calcTextareaHeight';
   import merge from 'element-ui/src/utils/merge';
   import { isKorean } from 'element-ui/src/utils/shared';
@@ -107,7 +109,7 @@
 
     componentName: 'ElInput',
 
-    mixins: [emitter, Migrating],
+    mixins: [emitter, Migrating, tableInject],
 
     inheritAttrs: false,
 
@@ -191,7 +193,7 @@
         return this.size || this._elFormItemSize || (this.$ELEMENT || {}).size;
       },
       inputDisabled() {
-        return this.disabled || (this.elForm || {}).disabled;
+        return this.disabled || (this.elForm || {}).disabled || this.disabledForTable;
       },
       isGroup() {
         return this.$slots.prepend || this.$slots.append;

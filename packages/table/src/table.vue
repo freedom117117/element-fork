@@ -239,6 +239,12 @@ export default {
 
   mixins: [Locale, Migrating],
 
+  provide() {
+    return {
+      elTable: this
+    };
+  },
+
   directives: {
     Mousewheel
   },
@@ -319,7 +325,12 @@ export default {
       type: Boolean,
       default: true
     },
-    rules: Object
+    rules: Object,
+
+    tableWithStatus: {
+      type: Boolean,
+      default: false
+    }
   },
 
   components: {
@@ -761,6 +772,24 @@ export default {
 };
 </script>
 <style lang="scss">
+.el-table__row.add{
+  color: #6eb92b;
+  .el-input__inner{
+    color: #6eb92b;
+  }
+}
+.el-table__row.edit{
+  color: #f5a100;
+   .el-input__inner{
+    color: #f5a100;
+  }
+}
+.el-table__row.delete{
+  color:#999999;
+  .el-input__inner{
+    color: #999999;
+  }
+}
 .el-table__row .is-error .el-input__inner, .el-table__row .is-error .el-input__inner:focus, .el-table__row .is-error .el-textarea__inner, .el-table__row .is-error .el-textarea__inner:focus{
   border-color:#f56c6c
 }

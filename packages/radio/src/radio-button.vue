@@ -33,11 +33,12 @@
 </template>
 <script>
   import Emitter from 'element-ui/src/mixins/emitter';
+  import tableInject from 'element-ui/src/mixins/tableInject';
 
   export default {
     name: 'ElRadioButton',
 
-    mixins: [Emitter],
+    mixins: [Emitter, tableInject],
 
     inject: {
       elForm: {
@@ -93,7 +94,7 @@
         return this._radioGroup.radioGroupSize || this._elFormItemSize || (this.$ELEMENT || {}).size;
       },
       isDisabled() {
-        return this.disabled || this._radioGroup.disabled || (this.elForm || {}).disabled;
+        return this.disabled || this._radioGroup.disabled || (this.elForm || {}).disabled || this.disabledForTable;
       },
       tabIndex() {
         return !this.isDisabled ? (this._radioGroup ? (this.value === this.label ? 0 : -1) : 0) : -1;

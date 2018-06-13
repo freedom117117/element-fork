@@ -87,7 +87,7 @@ import Popper from 'element-ui/src/utils/vue-popper';
 import Emitter from 'element-ui/src/mixins/emitter';
 import ElInput from 'element-ui/packages/input';
 import merge from 'element-ui/src/utils/merge';
-
+import tableInject from 'element-ui/src/mixins/tableInject';
 const NewPopper = {
   props: {
     appendToBody: Popper.props.appendToBody,
@@ -329,7 +329,7 @@ const validator = function(val) {
 };
 
 export default {
-  mixins: [Emitter, NewPopper],
+  mixins: [Emitter, NewPopper, tableInject],
 
   inject: {
     elForm: {
@@ -525,7 +525,7 @@ export default {
     },
 
     pickerDisabled() {
-      return this.disabled || (this.elForm || {}).disabled;
+      return this.disabled || (this.elForm || {}).disabled || this.disabledForTable;
     },
 
     firstInputId() {

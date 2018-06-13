@@ -38,10 +38,11 @@
 <script>
   import Focus from 'element-ui/src/mixins/focus';
   import Migrating from 'element-ui/src/mixins/migrating';
+  import tableInject from 'element-ui/src/mixins/tableInject';
 
   export default {
     name: 'ElSwitch',
-    mixins: [Focus('input'), Migrating],
+    mixins: [Focus('input'), Migrating, tableInject],
     inject: {
       elForm: {
         default: ''
@@ -107,7 +108,7 @@
         return this.value === this.activeValue;
       },
       switchDisabled() {
-        return this.disabled || (this.elForm || {}).disabled;
+        return this.disabled || (this.elForm || {}).disabled || this.disabledForTable;
       }
     },
     watch: {

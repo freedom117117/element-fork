@@ -23,9 +23,10 @@
   </button>
 </template>
 <script>
+  import tableInject from 'element-ui/src/mixins/tableInject';
   export default {
     name: 'ElButton',
-
+    mixins: [tableInject],
     inject: {
       elForm: {
         default: ''
@@ -65,7 +66,7 @@
         return this.size || this._elFormItemSize || (this.$ELEMENT || {}).size;
       },
       buttonDisabled() {
-        return this.disabled || (this.elForm || {}).disabled;
+        return this.disabled || (this.elForm || {}).disabled || this.disabledForTable;
       }
     },
 

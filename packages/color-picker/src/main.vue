@@ -34,10 +34,10 @@
   import Color from './color';
   import PickerDropdown from './components/picker-dropdown.vue';
   import Clickoutside from 'element-ui/src/utils/clickoutside';
-
+  import tableInject from 'element-ui/src/mixins/tableInject';
   export default {
     name: 'ElColorPicker',
-
+    mixins: [tableInject],
     props: {
       value: String,
       showAlpha: Boolean,
@@ -77,7 +77,7 @@
       },
 
       colorDisabled() {
-        return this.disabled || (this.elForm || {}).disabled;
+        return this.disabled || (this.elForm || {}).disabled || this.disabledForTable;
       }
     },
 
