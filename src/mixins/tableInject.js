@@ -11,7 +11,7 @@ export default {
   },
   computed: {
     disabledForTable() {
-      return (this.elTable || {}).disabled || (this.elTable !== '' && this.tableRowIndex !== '' && this.elTable.data[this.tableRowIndex].dataStatus === 'delete') ;
+      return (this.elTable || {}).disabled || (this.elTable !== '' && this.elTable.tableWithStatus && this.tableRowIndex !== '' && this.elTable.data[this.tableRowIndex].dataStatus === 'delete') ;
     }
   },
   watch: {
