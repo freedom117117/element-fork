@@ -284,7 +284,9 @@ export default {
     });
 
     objectAssign(column, forced[type] || {});
-
+    if (type === 'selection' && this.renderHeader) {
+      column.renderHeader = this.renderHeader;
+    }
     this.columnConfig = column;
 
     let renderCell = column.renderCell;

@@ -53,6 +53,7 @@ export default {
                 on-dblclick={($event) => this.handleDoubleClick($event, row)}
                 on-click={($event) => this.handleClick($event, row)}
                 on-contextmenu={($event) => this.handleContextMenu($event, row)}
+                on-mousedown={($event) => this.handleMouseDown($event, row)}
                 on-mouseenter={_ => this.handleMouseEnter($index)}
                 on-mouseleave={_ => this.handleMouseLeave()}
                 class={[this.getRowClass(row, $index)]}>
@@ -530,7 +531,9 @@ export default {
     handleMouseEnter(index) {
       this.store.commit('setHoverRow', index);
     },
-
+    handleMouseDown(event, row) {
+      this.store.commit('setCurrentRow', row);
+    },
     handleMouseLeave() {
       this.store.commit('setHoverRow', null);
     },
