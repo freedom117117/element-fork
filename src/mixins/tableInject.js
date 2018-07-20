@@ -26,7 +26,7 @@ export default {
   },
   methods: {
     getTableLine(DOM) {
-      if (DOM.tagName === 'TR' && DOM.getAttribute('class').indexOf('el-table__row') !== -1) {
+      if (DOM && DOM.tagName === 'TR' && DOM.getAttribute('class').indexOf('el-table__row') !== -1) {
         return DOM;
       } else {
         return this.getTableLine(DOM.parentNode);
