@@ -17,8 +17,10 @@ export default {
   watch: {
     'elTable.data.length'(val, oldValue) {
       if (this.elTable) {
-        this.tableRowIndex = Array.prototype.slice.call(this.getTableLine(this.$el).parentNode.querySelectorAll('.el-table__row')).indexOf(this.getTableLine(this.$el));
-        if (this.tableRowIndex < 0) {
+        let tr = this.getTableLine(this.$el);
+        if (tr !== 0) {
+          this.tableRowIndex = Array.prototype.slice.call(tr.parentNode.querySelectorAll('.el-table__row')).indexOf(tr);
+        } else {
           this.tableRowIndex = 0;
         }
       }
@@ -26,8 +28,12 @@ export default {
   },
   methods: {
     getTableLine(DOM) {
-      if (DOM && DOM.tagName === 'TR' && DOM.getAttribute('class').indexOf('el-table__row') !== -1) {
-        return DOM;
+      if (DOM.tagName === 'TR') {
+        if (DOM.getAttribute('class').indexOf('el-table__row') !== -1) {
+          return DOM;
+        } else {
+          return 0;
+        }
       } else {
         return this.getTableLine(DOM.parentNode);
       }
@@ -35,7 +41,14 @@ export default {
   },
   mounted() {
     if (this.elTable) {
-      this.tableRowIndex = Array.prototype.slice.call(this.getTableLine(this.$el).parentNode.querySelectorAll('.el-table__row')).indexOf(this.getTableLine(this.$el));
+      if (this.elTable) {
+        let tr = this.getTableLine(this.$el);
+        if (tr !== 0) {
+          this.tableRowIndex = Array.prototype.slice.call(tr.parentNode.querySelectorAll('.el-table__row')).indexOf(tr);
+        } else {
+          this.tableRowIndex = 0;
+        }
+      }
     }
   }
 };
