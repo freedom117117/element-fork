@@ -29,8 +29,12 @@ export default {
   methods: {
     getTableLine(DOM) {
       if (DOM.tagName === 'TR') {
-        if (DOM.getAttribute('class').indexOf('el-table__row') !== -1) {
-          return DOM;
+        if (DOM.getAttribute('class')) {
+          if (DOM.getAttribute('class').indexOf('el-table__row') !== -1) {
+            return DOM;
+          } else {
+            return 0;
+          }
         } else {
           return 0;
         }
