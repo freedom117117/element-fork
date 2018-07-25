@@ -273,8 +273,8 @@ export default {
 
     getHeaderCellClass(rowIndex, columnIndex, row, column) {
       const classes = [column.id, column.order, column.headerAlign, column.className, column.labelClassName];
-      if (this.table.rules && column.property && this.table.rules[column.property]) {
-        if (this.table.rules[column.property].some(item=>{
+      if (this.table.totalRules && column.property && this.table.totalRules[column.property]) {
+        if (this.table.totalRules[column.property].some(item=>{
           return item.required === true ;
         })) {
           classes.push('is-required');

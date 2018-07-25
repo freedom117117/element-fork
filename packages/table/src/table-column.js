@@ -191,7 +191,9 @@ export default {
       validator(val) {
         return val.every(order => ['ascending', 'descending', null].indexOf(order) > -1);
       }
-    }
+    },
+    rules: Array
+
   },
 
   data() {
@@ -280,7 +282,8 @@ export default {
       filteredValue: this.filteredValue || [],
       filterPlacement: this.filterPlacement || '',
       index: this.index,
-      sortOrders: this.sortOrders
+      sortOrders: this.sortOrders,
+      rules: this.rules
     });
 
     objectAssign(column, forced[type] || {});

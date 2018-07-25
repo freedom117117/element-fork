@@ -364,7 +364,7 @@ export default {
         });
       }
       let valid = true;
-      TableBody.methods.validate('change', row, column, cell, this.rules, errors => {
+      TableBody.methods.validate('change', row, column, cell, this.totalRules, errors => {
         if (errors) {
           valid = false;
         }
@@ -402,7 +402,7 @@ export default {
           const column = getColumnByCell(this, cell) || {};
           let row = {};
           row[column.property] = this.store.states.data[i][column.property];
-          TableBody.methods.validate('', row, column, cell, this.rules, errors => {
+          TableBody.methods.validate('', row, column, cell, this.totalRules, errors => {
             if (errors) {
               valid = false;
             }
@@ -551,6 +551,24 @@ export default {
 
     sort(prop, order) {
       this.store.commit('sort', { prop, order });
+    },
+
+    getTotalRules() {
+      let selfRules = {};
+      let rule = Object.assign({}, this.rules);
+      this.store.states.columns.forEach(item => {
+        if (item.rules) {
+          selfRules[item.property] = item.rules;
+        }
+      });
+      for (let k in selfRules) {
+        if (rule[k]) {
+          rule[k] = rule[k].concat(selfRules[k]);
+        } else {
+          rule[k] = selfRules[k];
+        }
+      }
+      return rule;
     }
   },
 
@@ -563,7 +581,6 @@ export default {
     tableSize() {
       return this.size || (this.$ELEMENT || {}).size;
     },
-
     bodyWrapper() {
       return this.$refs.bodyWrapper;
     },
@@ -743,7 +760,7 @@ export default {
     });
 
     this.$ready = true;
-
+    this.totalRules = this.getTotalRules();
     this.$on('el.table.change', this.onFieldChange);
   },
 
@@ -760,6 +777,7 @@ export default {
       showHeader: this.showHeader
     });
     return {
+      totalRules: Array,
       layout,
       store,
       isHidden: false,
